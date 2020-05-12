@@ -1,1 +1,1 @@
-# codex_galaxiae
+# FP-contextual-visualization

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<title>Codex Galaxiae</title>
+		<link rel="stylesheet" type="text/css" href="style.css" >
+		<script src="https://d3js.org/d3.v4.js"></script>
+		<script type="text/javascript" src="d3.bin.js"></script>
+    <!-- <script type="text/javascript" src="d3.v4.js"></script> -->
+		<!-- <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script> -->
+		<script src="https://d3js.org/d3-color.v1.min.js"></script>
+		<script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+		<script src="https://d3js.org/d3-ease.v1.min.js"></script>
+		<script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+		<script src="https://d3js.org/d3-timer.v1.min.js"></script>
+		<script src="https://d3js.org/d3-selection.v1.min.js"></script>
+		<script src="https://d3js.org/d3-transition.v1.min.js"></script>
+		<script src="https://d3js.org/d3-drag.v1.min.js"></script>
+		<script src="https://d3js.org/d3-brush.v1.min.js"></script>
+    <!-- <script src="https://d3js.org/d3-hierarchy.v1.min.js"></script> -->
+    <script src="https://cdn.rawgit.com/fabid/d3-rectbin/master/rectbin.js"></script>
+
+	</head>
+
+	<body id="container" class="svg-container">
+  <!-- <body> -->
+    <h1>ASTROCODEX MAPPA GALAXIAE</h1>
+		<script type="text/javascript" src="introFin.js"></script>
+		<div class="container" id="buttons">
+			<!-- <button class="simple-button simple-button-y" type="button" id="lum" value="lum" onclick="setColorY('lum', '#101010')">Luminance</button> -->
+			<button class="simple-button simple-button-y" type="button" id="absmag"
+			 value="absmag" onclick="setColorY('absmag', '#101010')">Absolute Magnitude</button>
+			<button class="simple-button simple-button-y" type="button" id="mag" style="background:white; color:black;"
+			value="mag" onclick="setColorY('mag', '#101010')">Apparent Magnitude</button>
+			<!-- <button class="simple-button simple-button-y" type="button" id="ci" value="ci" onclick="setColorY('ci', '#101010')">Color Index</button> -->
+			<h2></h2>
+			<button class="simple-button simple-button-x" type="button" id="lumx" style="background:white; color:black;"
+			value="lum" onclick="setColorX('lumx', '#101010')">Luminance</button>
+			<!-- <button class="simple-button simple-button-x" type="button" id="absmagx" value="absmag" onclick="setColorX('absmagx', '#101010')">Absolute Magnitude</button>
+			<button class="simple-button simple-button-x" type="button" id="magx" value="mag" onclick="setColorX('magx', '#101010')">Apparent Magnitude</button> -->
+			<button class="simple-button simple-button-x" type="button" id="cix"
+			 value="ci" onclick="setColorX('cix', '#101010')">Color Index</button>
+		</div>
+
+  </body>
+	<script>
+		var currentY = "mag";
+		var currentX = "lumx";
+    function setColorY(btn, color) {
+				if(btn === currentY){
+					currentY = btn;
+					var property = document.getElementById(btn);
+					var previous = document.getElementById(currentY);
+					previous.style.backgroundColor = "transparent";
+					previous.style.color = "white";
+					property.style.backgroundColor = "white";
+					property.style.color = "black";
+				}
+        else {
+						var property = document.getElementById(btn);
+						var previous = document.getElementById(currentY);
+						previous.style.backgroundColor = "transparent";
+						previous.style.color = "white";
+            property.style.backgroundColor = "white";
+						property.style.color = "black";
+            currentY = btn;
+        }
+		}
+			function setColorX(btn, color) {
+  				if(btn === currentX){
+  					currentX = btn;
+  					var property = document.getElementById(btn);
+  					var previous = document.getElementById(currentX);
+  					previous.style.backgroundColor = "transparent";
+  					previous.style.color = "white";
+  					property.style.backgroundColor = "white";
+  					property.style.color = "black";
+  				}
+          else {
+  						var property = document.getElementById(btn);
+  						var previous = document.getElementById(currentX);
+  						previous.style.backgroundColor = "transparent";
+  						previous.style.color = "white";
+              property.style.backgroundColor = "white";
+  						property.style.color = "black";
+              currentX = btn;
+          }
+  }
+</script>
+
+</html>

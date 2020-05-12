@@ -1,0 +1,84 @@
+body {
+  font: 10px sans-serif;
+  /* background: url('ESA_root_pillars.jpg') no-repeat; */
+  background: black;
+  background-size: 100%, 100%;
+}
+
+.label {
+  font-weight: bold;
+}
+
+.tile {
+  shape-rendering: crispEdges;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: white;
+  shape-rendering: crispEdges;
+  stroke-width: 0;
+}
+
+.axis text{
+  fill: white;
+}
+
+.simple-button{
+ background:transparent;
+ border:1px solid #fff;
+ border-radius:5px;
+ margin:5px;
+ margin-left: 10px;
+ margin-top: 10px;
+ outline:none;
+ cursor:pointer;
+ color:white;
+ width:160px;
+ height:40px;
+ font-size: 14px;
+}
+
+.simple-button:hover{
+  background:white;
+  color:black;
+}
+
+.simple-button:focus{
+  background:white;
+  color:black;
+}
+
+.container {
+  float: left;
+}
+
+.brush-y .handle{
+  cursor: ns-resize;;
+}
+
+#buttons{
+  width: 400px;
+  height: 560px;
+  text-align: center;
+  margin-top:50px;
+  margin-left: 50px;
+}
+
+h2{
+  margin-top:100px;
+  font-size: 75px;
+  color:white;
+}
+
+h1{
+  margin-top:40px;
+  margin-left:80px;
+  font-size:30px;
+  color:white;
+}
+
+svg {
+
+}

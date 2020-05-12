@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- <meta charset="UTF-8" /> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- some encoding -->
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <title>chart 3</title>
+    <!-- css -->
+    <link rel="stylesheet" type="text/css" href="style_location.css" >
+    <!-- d3 -->
+    <!-- <script src="https://d3js.org/d3.v5.min.js"></script> -->
+    <script type="text/javascript" src="d3.v4.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.7.0/d3.min.js"></script> -->
+
+    <!-- <script src="https://d3js.org/d3-color.v1.min.js"></script>
+    <script src="https://d3js.org/d3-dispatch.v1.min.js"></script>
+    <script src="https://d3js.org/d3-ease.v1.min.js"></script>
+    <script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
+    <script src="https://d3js.org/d3-timer.v1.min.js"></script>
+    <script src="https://d3js.org/d3-selection.v1.min.js"></script>
+    <script src="https://d3js.org/d3-transition.v1.min.js"></script>
+    <script src="https://d3js.org/d3-drag.v1.min.js"></script>
+    <script src="https://d3js.org/d3-brush.v1.min.js"></script> -->
+    
+
+</head>
+
+<body>
+    <div><script type="text/javascript" src="location.js"> </script></div>
+    
+    <div class="row" id='overlay'>
+        <div id="mySidebar" class="sidebar">
+            <!-- <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a> -->
+            <a href="#" class='home'>Home</a>
+            <p class='sidebartext'>Range</p>
+            <div id='rangeinfo'></div><br><br>
+            <p class='sidebartext'> Drag to filter Star along along x and y coordinates</p>
+            <div id='star_position'></div>
+            <p class='sidebartext'>Drag to filter the area along x and z coordinates</p>
+            <div id='star_navigator'></div>
+            <p class='sidebartext'>-----------------------------------------------------------------</p>
+            <p class='sidebartext'>Selected star:</p>
+            <img></img>
+            <p class='star_detail'>Bayer / Flamsteed designation: </p>
+            <p class='star_detail'>Common name : </p>
+            <p class='star_detail'>Distance to the earth : </p>
+            <p class='star_detail'>Luminosity </p>
+            <p class='star_detail'>Radial velocity: </p>
+            <p class='star_detail'>Absolute visual magnitude: </p>
+            <p class='star_detail'>Apparent visual magnitude: </p>
+            <p class='star_detail'>Color index: </p>
+            
+            <!-- <a href="#">Range</a>
+            <a href="#">Services</a>
+            <a href="#">Clients</a>
+            <a href="#">Contact</a> -->
+        </div>
+
+        <!-- <div id='infobar'></div> -->
+          
+        <div  id="main">
+            <button class="openbtn" id='openbtn' onclick="openNav()" style = 'margin-left: 400px;'>☰ Open Sidebar to navigate</button> 
+            <span class='sidebartext'>Hover to view star's names, click the star to view details.
+                </span>
+                
+            <div id='chart'></div> 
+            <!-- <div id="chartId"></div>     -->
+            <!-- <h2>Collapsed Sidebar</h2>
+            <p>Click on the hamburger menu/bar icon to open the sidebar, and push this content to the right.</p> -->
+        </div>
+      
+    </div>
+    
+  
+</body>
+
+</html>
