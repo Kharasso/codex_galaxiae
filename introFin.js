@@ -1,14 +1,38 @@
-d3.csv("hyg_exp.csv", function(error, rows){
+d3.csv("hyg_med_small.csv", function(error, rows){
   if(error) throw error;
 
+
+  var loc_circles_bool = false;
+
   var total = rows.length;
-  var margin = {top: 30, right: 90, bottom: 160, left: 300},
-      tileSize = 24,
+  var margin = {top: 90, right: 90, bottom: 160, left: 200},
+      tileSize = 22,
       numberOfTiles = 20,
       graphSize = tileSize * numberOfTiles;
 
-  var xLabel = "lum",
-      yLabel = "mag";
+  var urlObj = new URL(window.location.href);
+  var urlVars = urlObj.searchParams;
+
+  var featurex = urlVars.get("labelX");
+  var feature_y = urlVars.get("labelY");
+
+  var xLabel, yLabel;
+
+  if(featurex){
+     xLabel = featurex;
+  }else{
+     xLabel = "lum";
+  }
+
+  if(feature_y){
+    yLabel = feature_y;
+  }else{
+    yLabel = "mag";
+  }
+
+
+
+  var orginalRangeText = "";
 
   const svg = d3.select("body").append("svg")
                 .attr("width", graphSize + margin.left + margin.right)
@@ -24,8 +48,6 @@ d3.csv("hyg_exp.csv", function(error, rows){
   var ymax = d3.max(rows, function(d){ return +d[yLabel]});
   var ylim = [ymin, ymax];
 
-  d3.select("h2").text(rows.length);
-
   var x = d3.scaleLinear()
             .nice()
             .domain(xlim)
@@ -36,46 +58,66 @@ d3.csv("hyg_exp.csv", function(error, rows){
             .domain(ylim)
             .range([graphSize, 0]);
 
-  //x, y scaler variables for resizing
-  // var xR = d3.scaleLinear()
-  //           .nice()
-  //           .domain(xlim)
-  //           .range([0, graphSize]);
-  //
-  // var yR = d3.scaleLinear()
-  //           .nice()
-  //           .domain(ylim)
-  //           .range([graphSize, 0]);
-  var xR = x;
-  var yR = y;
-
+  //x, y scaler variables for resizing\
   //x, y range variables for resizing
-  var xRange = xlim;
-  var yRange = ylim;
+  var xR, yR;
+  var xRange, yRange;
+
+  var lowerXBrush = parseFloat(urlVars.get("lowerXBrush"));
+  var upperXBrush = parseFloat(urlVars.get("upperXBrush"));
+  var lowerYBrush = parseFloat(urlVars.get("lowerYBrush"));
+  var upperYBrush = parseFloat(urlVars.get("upperYBrush"));
+
+  if(lowerXBrush){
+    xRange = [lowerXBrush, upperXBrush];
+    yRange = [lowerYBrush, upperYBrush];
+
+    yR = d3.scaleLinear()
+            .nice()
+            .domain(yRange)
+            .range([graphSize,0]);
+
+    xR = d3.scaleLinear()
+            .nice()
+            .domain(xRange)
+            .range([0,graphSize]);
+  }else{
+    xR = x;
+    yR = y;
+
+    xRange = xlim;
+    yRange = ylim;
+  }
+
+  var original = "X Range:(" + xRange[0].toFixed(2) + ", " + xRange[1].toFixed(2)
+            + "), Y Range:(" + yRange[0].toFixed(2) + ", " + yRange[1].toFixed(2) + ")";
+  var textRange = d3.select("h3").text(original);
 
   var inputForRectBinning = []
   rows.forEach(function(d){
-
-    inputForRectBinning.push([x(+d[xLabel]), y(+d[yLabel])])
+    if(+d[yLabel] <= yRange[1] && +d[yLabel] >= yRange[0]){
+       if(+d[xLabel] <= xRange[1] && +d[xLabel] >= xRange[0]){
+           inputForRectBinning.push([xR(+d[xLabel]), yR(+d[yLabel])]);
+         }
+    }
   });
+  inputForRectBinning.push([0,0]);
   inputForRectBinning.push([graphSize, graphSize]);
 
-  // var valueDivX = (xlim[1] - xlim[0]) / numberOfTiles;
-  // var valueDivY = (ylim[1] - ylim[0]) / numberOfTiles;
-  var binning = d3.bin()
-                  .size([graphSize, graphSize])
-                  .side(tileSize)
+  //set current overall Count
+  d3.select(".Count").text(inputForRectBinning.length - 2);
+  // var binning = d3.bin()
+  //                 .size([graphSize, graphSize])
+  //                 .side(tileSize)
 
   var rectbinData = d3.rectbin()
       .dx(tileSize)
       .dy(tileSize)
       (inputForRectBinning);
+  // var bins = binning(inputForRectBinning);
 
-  var bins = binning(inputForRectBinning);
-
-  console.log(bins);
   var color = d3.scaleLinear()
-        .domain([0,10])
+        .domain([0,20])
         .range(["#ffffcc", "#e31a1c"]);
 
 // setting up the 2D histogram with rectangles
@@ -85,13 +127,42 @@ d3.csv("hyg_exp.csv", function(error, rows){
      .attr("width", graphSize)
      .attr("height", graphSize);
 
-  console.log(rectbinData.length);
+  // console.log(rectbinData.length);
+  const title = svg.append("g")
+                   .append("text")
+                   .attr("text-anchor", "middle")
+                   .attr("font-size","14px")
+                   .attr("fill", "white")
+                   .attr("transform","translate(215,-40)")
+                   .text("HISTOGRAM OF STARS IN DIFFERENT RANGES")
+
+   const subtitle = svg.append("g")
+                    .append("text")
+                    .attr("text-anchor", "middle")
+                    .attr("font-size","14px")
+                    .attr("fill", "white")
+                    .attr("transform","translate(215,-20)")
+                    .text("(Double-click on a tile to inspect the stars in that range in space)")
 
   const tiles = svg.append("g").attr("clip-path", "url(#clip)")
                    .selectAll("myRect")
                    .data(rectbinData)
                    .enter()
                    .append("rect")
+                   .on("dblclick", function(d){
+                     if(d.length > 0){
+                        // console.log(x.invert(d.x));
+                        // console.log(x.invert(d.x + tileSize));
+                        // console.log(y.invert(d.y));
+                        // console.log(y.invert(d.y - tileSize));
+                        var rangeH = [xR.invert(d.x), xR.invert(d.x + tileSize)];
+                        var rangeV = [yR.invert(d.y + tileSize), yR.invert(d.y)];
+
+                        loadPage(xLabel, yLabel, rangeH, rangeV, xRange, yRange);
+                      }
+                     else{
+                       return d;
+                     };})
                    .attr("x", function(d){ return d.x; })
                    .attr("y", function(d) { return d.y - tileSize; })
                    .attr("width", tileSize)
@@ -104,14 +175,33 @@ d3.csv("hyg_exp.csv", function(error, rows){
                      return "0.9";
                    })
                    .on("mouseover", function(d){
+
+                     original = "X Range:(" + xR.invert(d.x).toFixed(2) + ", " + xR.invert(d.x + tileSize).toFixed(2)
+                               + "), Y Range:(" + yR.invert(d.y + tileSize).toFixed(2) + ", " + yR.invert(d.y).toFixed(2) + ")";
+                     textRange = d3.select("h3").text(original);
+
+                     //redraw prview
+
+                     var loc_x_range = [xR.invert(d.x),xR.invert(d.x + tileSize)],
+                     loc_y_range = [yR.invert(d.y + tileSize), yR.invert(d.y)];
+
+                     if(loc_circles_bool == true){loc_circles.remove();}
+                     draw_preview(loc_x_range, loc_y_range);
+
+
+                     //change text
+
                      if(d.length === 0){
+
                        d3.select(this).attr("fill-opacity","0.9");
                        d3.select(this).attr("fill", "white");
-                       d3.select("h2").text(0);
+                       d3.select(".Count").text(0);
                      }
                      else{
-                     d3.select("h2").text(d.length);
+                     d3.select(".Count").text(d.length);
                      d3.select(this).attr("fill", "white");}
+
+
                    })
                    .on("mouseout", function(d){
                      opacity = 0;
@@ -126,11 +216,19 @@ d3.csv("hyg_exp.csv", function(error, rows){
                    .attr("stroke-opacity", "1.0")
                    .attr("stroke-width", "0.4")
 
+var brushXOffset = 90;
+var brushYOffset = 90;
+
  // adding X axis
- var axisX = svg.append("g")
+var axisX = svg.append("g")
                .attr("class", "axis")
                .attr("transform", "translate(0,"+graphSize+")")
-               .call(d3.axisBottom(x).ticks(10))
+               .call(d3.axisBottom(xR).ticks(10))
+
+ var axisXBrush = svg.append("g")
+             .attr("class", "axis")
+             .attr("transform", "translate(0,"+(graphSize+brushXOffset)+")")
+             .call(d3.axisTop(x).ticks(10))
 
  var labelX = svg.append("g")
                .append("text")
@@ -139,27 +237,30 @@ d3.csv("hyg_exp.csv", function(error, rows){
                .attr("x", graphSize/2)
                .attr("y", graphSize + 48)
                .attr("fill", "#d3d3d3")
-               .text("Luminance")
+               .text(subToFeature(xLabel))
 
  // adding Y axis
  var axisY = svg.append("g")
                .attr("class", "axis")
-               .call(d3.axisLeft(y).ticks(10))
+               .call(d3.axisLeft(yR).ticks(10))
 
+ var axisYBrush = svg.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate("+(-brushYOffset)+",0)")
+            .call(d3.axisRight(y).ticks(10))
 
  var labelY = svg.append("g")
                .append("text")
                .attr("text-anchor", "middle")
                .attr("font-size","14px")
                .attr("x", -graphSize/2)
-               .attr("y", -36)
+               .attr("y", -40)
                .attr("fill", "#d3d3d3")
                .attr("transform", "rotate(-90)")
-               .text("Apparent Magnitude")
+               .text(subToFeature(yLabel))
 
 
 // adding scroll brush
-
 var dataX = [];
 rows.forEach(function(d){
   dataX.push(+d[xLabel]);
@@ -183,14 +284,9 @@ var binsY = d3.histogram()
               (dataY)
 
 var chartHeight = graphSize/8;
-// var bandwidth = 0.1;
-// density = kde(epanechnikov(bandwidth), x.ticks(100), dataX);
-// console.log(dataX.length);
-// console.log(d3.max(binsX, d => d.length)/dataX.length);
-// console.log(binsX);
+
 var lineX = [];
 binsX.forEach(function(d,i){
-  // console.log([+d[columnName]]);
   if(i===0){
     lineX.push([2 * thresholdX[0]- thresholdX[1],d.length/dataX.length]);
   }
@@ -200,7 +296,6 @@ binsX.forEach(function(d,i){
 
 var lineY = [];
 binsY.forEach(function(d,i){
-  // console.log([+d[columnName]]);
   if(i===0){
     lineY.push([2 * thresholdY[0]- thresholdY[1],d.length/dataY.length]);
   }
@@ -208,30 +303,21 @@ binsY.forEach(function(d,i){
   lineY.push([thresholdY[i-1],d.length/dataY.length]);
 });
 
-//
-// console.log(threshold.length);
-//   console.log(binsX.length);
+
 var xHist = d3.scaleLinear()
-              // .domain([0, d3.max(binsX, d => d.length)/dataX.length])
               .domain([0, d3.max(binsX, d => d.length)/dataX.length])
               .range([0, chartHeight])
 
 var yHist = d3.scaleLinear()
               .domain([0, d3.max(binsY, d => d.length)/dataY.length])
               .range([0, chartHeight])
-// // line constructor
-// var xline = d3.line().curve(d3.curveBasis)
-//            .x(d => x(d[0]))
-//            .y(d => xhist(d[1]))
 
 // area constructor
 var xArea = d3.area().curve(d3.curveBasis)
              .x(d => x(d[0]))
              .y0(0)
              .y1(d => xHist(d[1]))
-// console.log("d0");
-// console.log(lineX[0]);
-// console.log(x(lineX[0][0]));
+
 var yArea = d3.area().curve(d3.curveBasis)
              .x(d => y(d[0]))
              .y0(0)
@@ -244,7 +330,7 @@ const histX = svg.append("g").attr("class","histo histo-x")
             .attr("stroke", "white")
             .attr("stroke-width", "0")
             .attr("d", xArea(lineX))
-            .attr("transform", "translate(0, "+(graphSize+90)+")");
+            .attr("transform", "translate(0, "+(graphSize+brushXOffset)+")");
 
 const histY = svg.append("g").attr("class","histo histo-y")
             .datum(lineY)
@@ -253,7 +339,7 @@ const histY = svg.append("g").attr("class","histo histo-y")
             .attr("stroke", "white")
             .attr("stroke-width", "0")
             .attr("d", yArea(lineY))
-            .attr("transform", "translate(-90, 0),rotate(90)");
+            .attr("transform", "translate("+(-brushYOffset)+", 0),rotate(90)");
 
 // Setting up X brush region
 // rectangular filters
@@ -264,7 +350,6 @@ var rectArray = [];
 for(var i = 1; i <= rectDivision * numberOfTiles; i++){
   rectArray.push(i);
 }
-
 
 
 const rectFiltersX = svg.append("g").attr("class","rect-filters")
@@ -281,7 +366,6 @@ const rectFiltersX = svg.append("g").attr("class","rect-filters")
 
 // Setting up Y brush region
 // rectangular filters
-
 const rectFiltersY = svg.append("g").attr("class","rect-filters")
                        .selectAll("myRectFilterY")
                        .data(rectArray)
@@ -300,10 +384,17 @@ var marginBrush = ({top: 0, right: 0, bottom: 0, left: 0});
 var width2 = graphSize;
 var height2 = chartHeight;
 var roundFactor = tileSize / rectDivision;
-// interval = thresholdX.every(12);
 const defaultSelection = [0, graphSize];
-var currentXSelection = defaultSelection;
-var currentYSelection = defaultSelection;
+
+var currentXSelection, currentYSelection;
+
+    if(lowerXBrush){
+      currentXSelection = [x(xRange[0]), x(xRange[1])];
+      currentYSelection = [y(yRange[1]), y(yRange[0])];
+    }else{
+      currentXSelection = defaultSelection;
+      currentYSelection = defaultSelection;
+    }
 
 const brushX = d3.brushX()
      .extent([[marginBrush.left, marginBrush.top], [width2 - marginBrush.right, height2 - marginBrush.bottom]])
@@ -319,19 +410,16 @@ const brushY = d3.brushX()
 function brushedX() {
   if(d3.event.sourceEvent){
       if(d3.event.sourceEvent.type === "brush") return;
-      console.log(d3.event.selection);
+      // console.log(d3.event.selection);
 
       const selection = [ Math.round(d3.event.selection[0]/roundFactor) * roundFactor,
                           Math.round(d3.event.selection[1]/roundFactor) * roundFactor];
-      // console.log(selection);
       const d0 = selection.map(x.invert);
-      // console.log(d0)
-      // const d1 = d0.map(interval.round);
-      //
+
       if(d0[0] === d0[1]){
         d0[1] = d0[0] + roundFactor;
       }
-      //
+
       const d1 = d0.map(x);
       d3.select(this).call(brushX.move, d1);
       currentXSelection = d1;
@@ -344,7 +432,6 @@ function brushedX() {
           return 0.6;
         }
       });
-
       resize("x", d1.map(x.invert));
     }
   }
@@ -354,11 +441,8 @@ function brushedY() {
       if(d3.event.sourceEvent.type === "brush") return;
       const selection = [ Math.round(d3.event.selection[0]/roundFactor) * roundFactor,
                           Math.round(d3.event.selection[1]/roundFactor) * roundFactor];
-      console.log(selection);
+      // console.log(selection);
       const d0 = selection.map(y.invert);
-      // console.log(d0)
-      // const d1 = d0.map(interval.round);
-      //
       if(d0[0] === d0[1]){
         d0[1] = d0[0] + roundFactor;
       }
@@ -377,7 +461,6 @@ function brushedY() {
         }
 
       });
-
       resize("y", d1.map(y.invert));
     }
   }
@@ -387,17 +470,7 @@ function brushendedX() {
     if (!d3.event.selection) {
       brushGroupX.call(brushX.move, currentXSelection);
     }
-    // const selection = this.children[1];
-    // console.log(selection);
-    // const windowWidth = selection.width.baseVal.value;
-    // const dx = windowWidth; // Use a fixed width when recentering.
-    // const [cx] = d3.mouse(this);
-    // const [x0, x1] = [cx - dx / 2, cx + dx / 2];
-    // const [X0, X1] = [0, graphSize];
-    // d3.select(this.parentNode)
-    //     .call(brushX.move, x1 > X1 ? [X1 - dx, X1]
-    //         : x0 < X0 ? [X0, X0 + dx]
-    //         : [x0, x1]);
+
 }
 
 function brushendedY() {
@@ -405,72 +478,24 @@ function brushendedY() {
       brushGroupY.call(brushY.move, currentYSelection);
     }
 }
-// function beforebrushstartedX() {
-//   console.log("outer")
-//   console.log(d3.event.selection);
-//   const selection = this.parentNode.children[1];
-//   const windowWidth = selection.width.baseVal.value;
-//   const dx = windowWidth; // Use a fixed width when recentering.
-//   const [cx] = d3.mouse(this);
-//   const [x0, x1] = [cx - dx / 2, cx + dx / 2];
-//   const [X0, X1] = [0, graphSize];
-//   d3.select(this.parentNode)
-//       .call(brushX.move, x1 > X1 ? [X1 - dx, X1]
-//           : x0 < X0 ? [X0, X0 + dx]
-//           : [x0, x1]);
-// }
 
-//
-// function beforebrushstartedY() {
-//   const selection = d3.brushSelection(brushY);
-//   const dx = y(selection[1]) - y(selection[0]); // Use a fixed width when recentering.
-//   const [cx] = d3.mouse(this);
-//   const [x0, x1] = [cx - dx / 2, cx + dx / 2];
-//   const [X0, X1] = y.range();
-//   d3.select(this.parentNode)
-//       .call(brush.move, x1 > X1 ? [X1 - dx, X1]
-//           : x0 < X0 ? [X0, X0 + dx]
-//           : [x0, x1]);
-// }
-//
 const brushGroupX = svg.append("g")
                  .attr("class","brush-x")
                  .call(brushX)
-                 .call(brushX.move, defaultSelection)
-                 // .call(g => g.select(".overlay")
-                 //  // .datum({type: "selection"})
-                 //  .on("mousedown touchstart", beforebrushstartedX))
+                 .call(brushX.move, currentXSelection)
                  .attr("transform", "translate(0, "+(graphSize+90)+")");
 
 const brushGroupY = svg.append("g")
                   .attr("class","brush-y")
                   .call(brushY)
-                  .call(brushY.move, defaultSelection)
-                  // .call(g => g.select(".overlay")
-                  //   .datum({type: "selection"})
-                  //   .on("mousedown touchstart", beforebrushstartedY))
+                  .call(brushY.move, currentYSelection)
                   .attr("transform", "translate(-90, 0),rotate(90)");
-// var brushMargin = {top: 10, right: 0, bottom: 20, left: 0};
-// const brush = d3.brushX()
-//                 .extent([[margin.left, margin.top],[graphSize - margin.right, chartHeight - margin.bottom]])
-//                 .on("start brush end", brushed);
 
 
-
-// kde function
-// function kde(kernel, thresholds, data){
-//   return thresholds.map(t => [t, d3.mean(data, d => kernel(t - d))]);
-// }
-
-// the Epanechnikov Kernel function
-// function epanechnikov(bandwidth){
-//   return x => Math.abs(x /= bandwidth) <= 1 ? 0.75 * (1 - x * x) / bandwidth : 0;
-// }
 
 // Setting Y axis buttons
  d3.selectAll(".simple-button-y")
    .on("click",function () {
-     // console.log("i");
      var value = d3.select(this).property("value");
      brushGroupY.call(brushY.move, defaultSelection);
      clicking('y', value);});
@@ -478,10 +503,20 @@ const brushGroupY = svg.append("g")
 // Setting X axis buttons
 d3.selectAll(".simple-button-x")
   .on("click",function () {
-    // console.log("i");
     var value = d3.select(this).property("value");
     brushGroupX.call(brushX.move, defaultSelection);
     clicking('x', value);});
+
+var xLabelID = "#" + xLabel;
+var yLabelID = "#" + yLabel;
+
+d3.select(xLabelID)
+  .attr("background-color", "white")
+  .attr("color", "black")
+
+d3.select(yLabelID)
+  .attr("background", "white")
+  .attr("color", "black")
 
 // function that maps subscript to full feature name
 function subToFeature(sub){
@@ -499,12 +534,9 @@ function subToFeature(sub){
 
 // function to update the graph
  function clicking(axis, feature) {
-   // console.log(feature);
-   // var num = Math.floor(Math.random() * Math.floor(476));
-   d3.select("h2").text(total);
+   d3.select(".Count").text(total);
 
    if(axis === 'y'){
-   // console.log(columnName);
    yLabel = feature;
    ymin = d3.min(rows, function(d){ return +d[yLabel]});
    ymax = d3.max(rows, function(d){ return +d[yLabel]});
@@ -512,7 +544,6 @@ function subToFeature(sub){
 
    dataY = [];
    rows.forEach(function(d){
-     // console.log([+d[columnName]]);
      dataY.push(+d[yLabel]);
    });
 
@@ -530,7 +561,6 @@ function subToFeature(sub){
 
    lineY = [];
    binsY.forEach(function(d,i){
-     // console.log([+d[columnName]]);
      if(i===0){
        lineY.push([2 * thresholdY[0]- thresholdY[1],d.length/dataY.length]);
      }
@@ -550,6 +580,8 @@ function subToFeature(sub){
    histY.datum(lineY)
         .attr("d",yArea);
 
+   yR = y;
+   yRange = ylim;
    }
    else{
    xLabel = feature;
@@ -566,7 +598,6 @@ function subToFeature(sub){
 
    dataX = [];
    rows.forEach(function(d){
-     // console.log([+d[columnName]]);
      dataX.push(+d[xLabel]);
 
    binsX = d3.histogram()
@@ -577,7 +608,6 @@ function subToFeature(sub){
 
    lineX = [];
    binsX.forEach(function(d,i){
-     // console.log([+d[columnName]]);
      if(i===0){
        lineX.push([2 * thresholdX[0]- thresholdX[1],d.length/dataX.length]);
      }
@@ -597,20 +627,31 @@ function subToFeature(sub){
    histX.datum(lineX)
         .attr("d",xArea);
 
+   xR = x;
+   xRange = xlim;
    }
 
-   xR = x;
-   yR = y;
+   // inputForRectBinning = []
+   // rows.forEach(function(d){
+   //   inputForRectBinning.push([x(+d[xLabel]), y(+d[yLabel])])
+   // });
+   //
+   // rectbinData = d3.rectbin()
+   //     .dx(tileSize)
+   //     .dy(tileSize)
+   //     (inputForRectBinning);
+   var inputForRectBinning = [];
 
-   //x, y range variables for resizing
-   xRange = xlim;
-   yRange = ylim;
-
-   inputForRectBinning = []
    rows.forEach(function(d){
-     // console.log([+d[columnName]]);
-     inputForRectBinning.push([x(+d[xLabel]), y(+d[yLabel])])
+     if(+d[yLabel] <= yRange[1] && +d[yLabel] >= yRange[0]){
+        if(+d[xLabel] <= xRange[1] && +d[xLabel] >= xRange[0]){
+            inputForRectBinning.push([xR(+d[xLabel]), yR(+d[yLabel])]);
+          }
+    }
    });
+
+   inputForRectBinning.push([0,0]);
+   inputForRectBinning.push([graphSize, graphSize]);
 
    rectbinData = d3.rectbin()
        .dx(tileSize)
@@ -630,6 +671,10 @@ function subToFeature(sub){
              return "0.9";
            })
 
+   original = "X Range:(" + xRange[0].toFixed(2) + ", " + xRange[1].toFixed(2)
+             + "), Y Range:(" + yRange[0].toFixed(2) + ", " + yRange[1].toFixed(2) + ")";
+   textRange = d3.select("h3").text(original);
+
    textX = subToFeature(xLabel);
    textY = subToFeature(yLabel);
 
@@ -638,16 +683,16 @@ function subToFeature(sub){
 
    axisX.call(d3.axisBottom(x).ticks(10));
    axisY.call(d3.axisLeft(y).ticks(10));
+   axisXBrush.call(d3.axisTop(x).ticks(10));
+   axisYBrush.call(d3.axisRight(y).ticks(10));
 
  }
 
 
  // function to resize the graph
  function resize(axis, range){
-   // console.log(range);
 
    if(axis === 'y'){
-     // console.log(columnName);
 
      yRange = [range[1], range[0]];
 
@@ -667,7 +712,6 @@ function subToFeature(sub){
    var inputForRectBinning = [];
 
    rows.forEach(function(d){
-     // console.log([+d[columnName]]);
      if(+d[yLabel] <= yRange[1] && +d[yLabel] >= yRange[0]){
         if(+d[xLabel] <= xRange[1] && +d[xLabel] >= xRange[0]){
             inputForRectBinning.push([xR(+d[xLabel]), yR(+d[yLabel])]);
@@ -677,19 +721,17 @@ function subToFeature(sub){
 
    inputForRectBinning.push([0,0]);
    inputForRectBinning.push([graphSize, graphSize]);
-   // console.log(yRange);
-   // console.log(xRange);
-   // console.log(inputForRectBinning);
-   // console.log([xR(xRange[0]), xR(xRange[1])]);
-   // console.log([yR(yRange[0]), yR(yRange[1])]);
-   // console.log([Math.min(inputX), Math.max(inputX)]);
-   // console.log([Math.min(inputY), Math.max(inputY)]);
-   var rectbinData = d3.rectbin()
+
+   d3.select(".Count").text(inputForRectBinning.length - 2);
+   original = "X Range:(" + xRange[0].toFixed(2) + ", " + xRange[1].toFixed(2)
+             + "), Y Range:(" + yRange[0].toFixed(2) + ", " + yRange[1].toFixed(2) + ")";
+   textRange = d3.select("h3").text(original);
+
+   rectbinData = d3.rectbin()
        .dx(tileSize)
        .dy(tileSize)
        (inputForRectBinning);
 
-   console.log(rectbinData.length);
    count = 0;
    tiles.data(rectbinData)
          .attr("x", function(d) { return d.x })
@@ -706,8 +748,92 @@ function subToFeature(sub){
 
    axisX.call(d3.axisBottom(xR).ticks(10));
    axisY.call(d3.axisLeft(yR).ticks(10));
+  }
+
+//function to change page on click
+  function loadPage(xLabel, yLabel, xTileRange,
+    yTileRange, xBrushRange, yBrushRange){
+    var var0 = "labelX=" + xLabel;
+    var var1 = "labelY=" + yLabel;
+    var var2 = "lowerX=" + xTileRange[0].toString();
+    var var3 = "upperX=" + xTileRange[1].toString();
+    var var4 = "lowerY=" + yTileRange[0].toString();
+    var var5 = "upperY=" + yTileRange[1].toString();
+    var var6 = "lowerXBrush=" + xBrushRange[0].toString();
+    var var7 = "upperXBrush=" + xBrushRange[1].toString();
+    var var8 = "lowerYBrush=" + yBrushRange[0].toString();
+    var var9 = "upperYBrush=" + yBrushRange[1].toString();
+
+    var dest = [var0, var1, var2, var3, var4, var5, var6, var7,
+                var8, var9].join('&');
+    var url = "location_index.html?" + dest;
+
+    window.location = url;
+  }
 
 
- }
+  //preview
+
+var width_pre = 180,
+    height_pre = 180;
+
+var Svg_location = d3.select("div#preview")
+          .append("svg")
+          .attr("width", width_pre)
+          .attr("height", height_pre)
+          .attr('id', 'location')
+
+
+function draw_preview(xR_loc, yR_loc){
+
+  loc_circles_bool = true;
+
+
+
+  filtered_location_data = rows.filter(d => d[xLabel] > xR_loc[0] && d[xLabel] < xR_loc[1])
+  filtered_location_data = filtered_location_data.filter(d => d[yLabel] > yR_loc[0] && d[yLabel] < yR_loc[1])
+
+
+  var cimax = d3.max(rows, function(d){ return +d.ci});
+  var cimin = d3.min(rows, function(d){ return +d.ci});
+
+
+  var loc_xmax = d3.max(rows, function(d){ return +d.x});
+  var loc_ymax = d3.max(rows, function(d){ return +d.y});
+
+  var loc_xmin = d3.min(rows, function(d){ return +d.x});
+  var loc_ymin = d3.min(rows, function(d){ return +d.y});
+  // console.log('rj',xLabel, xR_loc[0],xR_loc[1], yLabel, yR_loc, filtered_location_data.length)
+
+  //scale
+
+  var x_loc = d3.scaleLinear()
+  .domain([loc_xmin, loc_xmax])
+  .range([0, width_pre])
+
+  var y_loc = d3.scaleLinear()
+  .domain([loc_ymin, loc_ymax])
+  .range([height_pre, 0])
+
+  var color = d3.scaleSequential().domain([cimax, cimin]).interpolator(d3.interpolateRdYlBu)
+
+  //draw circle
+
+  loc_circles = Svg_location.append('g')
+        .selectAll('circle')
+        .data(filtered_location_data)
+        .enter()
+        .append('circle')
+        .attr('cx', d => x_loc(d.x))
+        .attr('cy', d => y_loc(d.y))
+        .attr('r', 1.5)
+        .attr('fill', d => color(d.ci))
+        .style('opacity', .8)
+
+
+
+}
+
+
 
 });

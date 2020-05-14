@@ -18,6 +18,7 @@
 		<script src="https://d3js.org/d3-transition.v1.min.js"></script>
 		<script src="https://d3js.org/d3-drag.v1.min.js"></script>
 		<script src="https://d3js.org/d3-brush.v1.min.js"></script>
+		<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
     <!-- <script src="https://d3js.org/d3-hierarchy.v1.min.js"></script> -->
     <script src="https://cdn.rawgit.com/fabid/d3-rectbin/master/rectbin.js"></script>
 
@@ -25,28 +26,70 @@
 
 	<body id="container" class="svg-container">
   <!-- <body> -->
-    <h1>ASTROCODEX MAPPA GALAXIAE</h1>
+
 		<script type="text/javascript" src="introFin.js"></script>
-		<div class="container" id="buttons">
+		<div class="container">
+
+			<h1>ASTROCODEX MAPPA GALAXIAE</h1>
+			<div class='spandiv'>
+				<span class="a">
+					<h2 class="Count"></h2>
+					<h3 style="text-align: center; color:white; margin-top: 39px; font-size: 16px">X Range: (250, 250)  , Y Range: (200, 200)</h3>
+				</span>
+				<span class="b">
+					<div id='preview'></div>
+					<p style='color:white; text-align: center; font-size: 16px; font-weight:bold'>Preview of star locations</p>
+				</span>
+			</div>
 			<!-- <button class="simple-button simple-button-y" type="button" id="lum" value="lum" onclick="setColorY('lum', '#101010')">Luminance</button> -->
-			<button class="simple-button simple-button-y" type="button" id="absmag"
-			 value="absmag" onclick="setColorY('absmag', '#101010')">Absolute Magnitude</button>
-			<button class="simple-button simple-button-y" type="button" id="mag" style="background:white; color:black;"
-			value="mag" onclick="setColorY('mag', '#101010')">Apparent Magnitude</button>
+			<p style="font-weight:bold" class="headliner">Y AXIS - CHOOSE A MAGNITUDE PARAMETER:</p>
+			<p class="headliner">  - Apparent Magnitude: A measure of the brightness of a star or other astronomical object observed from the Earth. </p>
+			<p class="headliner">  - Absolute Magnitude: The star's absolute visual magnitude (its apparent magnitude from a distance of 10 parsecs).</p>
+			<div class="buttons">
+				<button class="simple-button simple-button-y" type="button" id="absmag"
+				 value="absmag" onclick="setColorY('absmag', '#101010')">ABSOLUTE MAGNITUDE</button>
+				<button class="simple-button simple-button-y" type="button" id="mag"
+				value="mag" onclick="setColorY('mag', '#101010')">APPARENT MAGNITUDE</button>
+		  </div>
 			<!-- <button class="simple-button simple-button-y" type="button" id="ci" value="ci" onclick="setColorY('ci', '#101010')">Color Index</button> -->
-			<h2></h2>
-			<button class="simple-button simple-button-x" type="button" id="lumx" style="background:white; color:black;"
-			value="lum" onclick="setColorX('lumx', '#101010')">Luminance</button>
-			<!-- <button class="simple-button simple-button-x" type="button" id="absmagx" value="absmag" onclick="setColorX('absmagx', '#101010')">Absolute Magnitude</button>
-			<button class="simple-button simple-button-x" type="button" id="magx" value="mag" onclick="setColorX('magx', '#101010')">Apparent Magnitude</button> -->
-			<button class="simple-button simple-button-x" type="button" id="cix"
-			 value="ci" onclick="setColorX('cix', '#101010')">Color Index</button>
+			<p style="font-weight:bold" class="headliner">X AXIS - CHOOSE AN ENERGY PARAMETER:</p>
+			<p class="headliner">  -  Luminosity: Star's luminosity as a multiple of Solar luminosity.</p>
+			<p class="headliner">  -  Color Index: The star's color index (blue magnitude - visual magnitude), where known.</p>
+			<div class="buttons">
+			<button class="simple-button simple-button-x" type="button" id="lumx"
+				value="lum" onclick="setColorX('lumx', '#101010')">LUMINOSITY</button>
+				<!-- <button class="simple-button simple-button-x" type="button" id="absmagx" value="absmag" onclick="setColorX('absmagx', '#101010')">Absolute Magnitude</button>
+				<button class="simple-button simple-button-x" type="button" id="magx" value="mag" onclick="setColorX('magx', '#101010')">Apparent Magnitude</button> -->
+				<button class="simple-button simple-button-x" type="button" id="cix"
+				 value="ci" onclick="setColorX('cix', '#101010')">COLOR INDEX</button>
+			</div>
+
 		</div>
 
   </body>
 	<script>
-		var currentY = "mag";
-		var currentX = "lumx";
+		var urlObj = new URL(window.location.href);
+		var urlVars = urlObj.searchParams;
+
+		var featurex = urlVars.get("labelX");
+		var feature_y = urlVars.get("labelY");
+
+		var currentY;
+		var currentX;
+
+		if(featurex){
+			currentY = feature_y;
+			currentX = featurex + "x";
+		}else{
+			currentY = "mag";
+			currentX = "lumx";
+		}
+
+		document.getElementById(currentY).style.background = "white";
+		document.getElementById(currentY).style.color = "black";
+		document.getElementById(currentX).style.background = "white";
+		document.getElementById(currentX).style.color = "black";
+
     function setColorY(btn, color) {
 				if(btn === currentY){
 					currentY = btn;
