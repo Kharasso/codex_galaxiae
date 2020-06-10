@@ -6,7 +6,7 @@ project link
       https://kharasso.github.io/codex_galaxiae/project
 
 Website:
-      https://kharasso.github.io/codex_galaxiae/
+https://kharasso.github.io/codex_galaxiae/index.html
 
 Paper:
       https://drive.google.com/file/d/1d77IsUxXU6myvfxHIsEfhZ8vw8DNTKkB/view?usp=sharing
