@@ -3,10 +3,10 @@
 An Interactive Online Codex of Stars Based on the HYG Star Catalog Database
 
 project link
-      https://junlr.github.io/Astrodex/project
+      https://kharasso.github.io/codex_galaxiae/project
 
 Website:
-      https://junlr.github.io/Astrodex/
+      https://kharasso.github.io/codex_galaxiae/
 
 Paper:
       https://drive.google.com/file/d/1d77IsUxXU6myvfxHIsEfhZ8vw8DNTKkB/view?usp=sharing
